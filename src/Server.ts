@@ -3,17 +3,16 @@ import morgan from 'morgan';
 import path from 'path';
 import helmet from 'helmet';
 
-import express, { NextFunction, Request, Response } from 'express';
-import StatusCodes from 'http-status-codes';
+import express, { Request, Response, NextFunction } from 'express';
+import { StatusCodes } from 'http-status-codes';
 import 'express-async-errors';
 
 import BaseRouter from './routes';
 import logger from '@shared/Logger';
 
+
+// Init express
 const app = express();
-const { BAD_REQUEST } = StatusCodes;
-
-
 
 /************************************************************************************
  *                              Set basic express settings
@@ -34,18 +33,15 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Add APIs
-app.use('/api', BaseRouter);
+app.use('/working-week', BaseRouter);
 
 // Print API errors
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    logger.err(err, true);
-    return res.status(BAD_REQUEST).json({
+    // logger.error(err.message, err);
+    return res.status(StatusCodes.BAD_REQUEST).json({
         error: err.message,
     });
 });
-
-
 
 /************************************************************************************
  *                              Serve front-end content
