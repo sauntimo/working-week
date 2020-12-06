@@ -1,4 +1,7 @@
 import dayjs from 'dayjs';
+import Timezone from 'dayjs/plugin/timezone';
+dayjs.extend(Timezone);
+
 import fetch from 'node-fetch';
 import { StatusCodes } from 'http-status-codes';
 
@@ -68,6 +71,7 @@ export class DatesCalculator {
       );
     }
 
+    dayjs.tz.setDefault('Europe/London')
     const givenDate = dayjs(dateString);
     // 0 is Sunday
     const dayNumber = parseInt(givenDate.format('d'), 10);
