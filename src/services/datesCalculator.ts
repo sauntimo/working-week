@@ -8,6 +8,7 @@ import { StatusCodes } from 'http-status-codes';
 import {
   IApiResponse,
   IFailResponse,
+  regions,
   IRegion,
   isRegion,
   IHolidayResponse,
@@ -39,7 +40,8 @@ export class DatesCalculator {
 
     if (!isRegion(region)){
       return this.failReturn(
-        `Invalid region. Valid regions are 'england-and-wales', 'scotland' and 'northern-ireland'.`,
+        `Invalid region. Valid regions are `
+          + regions.map(region => `'${region}'`).join(', ') + `.`,
         true
       );
     }

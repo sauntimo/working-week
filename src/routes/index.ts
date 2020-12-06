@@ -1,8 +1,8 @@
 
 import { Request, Response, Router } from 'express';
-import { StatusCodes } from 'http-status-codes';
 
-import { DatesCalculator, IRegion } from '../services/datesCalculator';
+import { DatesCalculator } from '../services/datesCalculator';
+import { IRegion } from '../common/types';
 
 // Init router and path
 const router = Router();

@@ -18,7 +18,7 @@ export interface IApiResponseBase {
 
   export type IApiResponse<T> = ISuccessResponse<T> | IFailResponse
 
-  const regions = ['england-and-wales', 'scotland', 'northern-ireland'] as const;
+  export const regions = ['england-and-wales', 'scotland', 'northern-ireland'] as const;
 
   export type IRegion = typeof regions[number];
 
