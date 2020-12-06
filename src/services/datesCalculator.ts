@@ -20,14 +20,16 @@ interface IFailResponse extends IApiResponseBase {
 
 type IApiResponse<T> = ISuccessResponse<T> | IFailResponse
 
-type IDivision = 'england-and-wales' | 'scotland' | 'northern-ireland'
+const regions = ['england-and-wales', 'scotland', 'northern-ireland'] as const;
+export type IRegion = typeof regions[number];
+const isRegion = (x: string): x is IRegion => regions.includes(x as IRegion);
 
-interface IHolidayResponse {
-  [key: string]: IHoliday;
+type IHolidayResponse = {
+  [key in IRegion]: IHoliday;
 }
 
 interface IHoliday {
-  division: IDivision;
+  division: IRegion;
   events: IHolidayEvent[];
 }
 
@@ -38,7 +40,7 @@ interface IHolidayEvent {
   bunting: boolean;
 }
 
-export default class DatesCalculator {
+export class DatesCalculator {
 
   private readonly bankHolidayApiUrl = 'https://www.gov.uk/bank-holidays.json';
   private readonly dateFormat = 'YYYY-MM-DD';
@@ -47,21 +49,26 @@ export default class DatesCalculator {
    * Takes a date and returns an array of dates for the following working week
    * * Assumes the next working week commences on the following Monday
    * * So given a Monday, will return the week commencing 7 days later
-   * @param {Date} date a date for which to get the following working week
+   * @param dateString a date for which to get the following working week
    */
   public calculateDates = async (
-    date: string,
-    region: IDivision = 'england-and-wales',
+    dateString: string,
+    region: IRegion = 'england-and-wales',
   ): Promise<IApiResponse<Date[]>> => {
 
-    if (isNaN(Date.parse(date))) {
-      return {
-        success: false,
-        message: `Invalid date. Please supply a date string in a valid format such as YYYY-MM-DD`,
-      }
+    if (isNaN(Date.parse(dateString))) {
+      return this.failReturn(
+        `Invalid date. Please supply a date string in a valid format such as YYYY-MM-DD.`
+      );
     }
 
-    const givenDate = dayjs(date);
+    if (!isRegion(region)){
+      return this.failReturn(
+        `Invalid region. Valid regions are 'england-and-wales', 'scotland' and 'northern-ireland'.`
+      );
+    }
+
+    const givenDate = dayjs(dateString);
     // 0 is Sunday
     const dayNumber = parseInt(givenDate.format('d'), 10);
     const daysTilNextMonday = dayNumber !== 0 
@@ -80,17 +87,24 @@ export default class DatesCalculator {
 
     return {
       success: true,
-      message: `There are ${results.length} working days in the working week commencing
-        Monday ${nextMonday.format(this.dateFormat)}. ${bankHolidaysRes.message}`,
+      message: `There are ${results.length} working days in the working week commencing `
+       + `Monday ${nextMonday.format(this.dateFormat)}. ${bankHolidaysRes.message}`,
       data: results
     };
   }
 
-/**
- * Check if a date is in a known list of holidays
- * @param date date to check
- * @param holidays holidays retrieved from external source
- */
+  /**
+   * helper fn for returning an error
+   * @param message description of what went wrong
+   */
+  private readonly failReturn = (message: string): IFailResponse =>
+    ({ success: false, message })
+
+  /**
+   * Check if a date is in a known list of holidays
+   * @param date date to check
+   * @param holidays holidays retrieved from external source
+   */
   private readonly isHoliday = (
     date: dayjs.Dayjs,
     holidays: IHolidayEvent[]
@@ -102,11 +116,11 @@ export default class DatesCalculator {
    * Check a week for bank holidays
    * uses gov.uk data
    * @param date start of week to check for holidays
-   * @param division region of the UK to check for holidays
+   * @param region region of the UK to check for holidays
    */
   private readonly getBankHolidays = async (
     date: string,
-    division: IDivision,
+    region: IRegion,
   ): Promise<IApiResponse<IHolidayEvent[]>> => {
     const givenDate = dayjs(date);
 
@@ -115,15 +129,12 @@ export default class DatesCalculator {
     });
 
     if (bankHolidaysRes.status !== StatusCodes.OK) {
-      return {
-        success: false,
-        message: `Unable to retrieve bank holidays from external source.`,
-      }
+      return this.failReturn(`Unable to retrieve bank holidays from external source.`);
     }
 
     const bankHolidays: IHolidayResponse = await bankHolidaysRes.json();
 
-    const holidays = bankHolidays[division].events
+    const holidays = bankHolidays[region].events
       .filter(event => dayjs(event.date).isAfter(givenDate.subtract(1, 'day')))
       .filter(event => dayjs(event.date).isBefore(givenDate.add(5, 'day')));
 
@@ -134,8 +145,8 @@ export default class DatesCalculator {
 
     return {
       success: true,
-      message: `There ${plural ? 'are' : 'is'} ${holidays.length > 0 ? 'also' : ''}
-        ${holidays.length} holiday${plural ? 's' : ''}${dates}.`,
+      message: `There ${plural ? 'are' : 'is'} ${holidays.length > 0 ? 'also ' : ''}`
+        + `${holidays.length} holiday${plural ? 's' : ''} in ${region}${dates}.`,
       data: holidays
     }
   }
