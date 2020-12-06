@@ -73,7 +73,8 @@
     "jsonfile": "^6.1.0",
     "module-alias": "^2.2.2",
     "morgan": "^1.10.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "tslib": "^2.0.3"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",

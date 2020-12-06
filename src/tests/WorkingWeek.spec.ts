@@ -1,11 +1,11 @@
 import { StatusCodes } from 'http-status-codes';
 
-import { DatesCalculator } from '../src/services/datesCalculator';
+import { DatesCalculator } from '../services/datesCalculator';
 import {
     IApiResponse,
     ISuccessResponse,
     IRegion
-  } from '../src/common/types';
+  } from '../common/types';
 
 const datesCalculator = new DatesCalculator;
 

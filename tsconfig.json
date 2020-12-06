@@ -65,6 +65,12 @@
     /* Advanced Options */
     "skipLibCheck": true,                     /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true,  /* Disallow inconsistently-cased references to the same file. */
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
     "paths": {
       "@shared/*": [
         "src/shared/*"
@@ -76,8 +82,9 @@
   },
   "include": [
     "src/**/*.ts",
-    "tests/**/*.ts"
-, "tests/WorkingWeek.spec.ts"  ],
+    "src/*.ts",
+    "src/tests/**/*.ts"
+  ],
   "exclude": [
     "src/public/"
   ]
