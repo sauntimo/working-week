@@ -10,15 +10,18 @@ import { StatusCodes } from 'http-status-codes';
 interface IApiResponseBase {
   success: boolean;
   message: string;
+  statusCode: StatusCodes;
 }
 
 interface ISuccessResponse<T> extends IApiResponseBase {
   success: true;
-  data: T
+  data: T;
+  statusCode: StatusCodes.OK;
 }
 
 interface IFailResponse extends IApiResponseBase {
   success: false;
+  statusCode: StatusCodes.BAD_REQUEST | StatusCodes.INTERNAL_SERVER_ERROR;
 }
 
 type IApiResponse<T> = ISuccessResponse<T> | IFailResponse
@@ -61,17 +64,19 @@ export class DatesCalculator {
 
     if (isNaN(Date.parse(dateString))) {
       return this.failReturn(
-        `Invalid date. Please supply a date string in a valid format such as YYYY-MM-DD.`
+        `Invalid date. Please supply a date string in a valid format such as YYYY-MM-DD.`,
+        true
       );
     }
 
     if (!isRegion(region)){
       return this.failReturn(
-        `Invalid region. Valid regions are 'england-and-wales', 'scotland' and 'northern-ireland'.`
+        `Invalid region. Valid regions are 'england-and-wales', 'scotland' and 'northern-ireland'.`,
+        true
       );
     }
 
-    dayjs.tz.setDefault('Europe/London')
+    dayjs.tz.setDefault('Europe/London');
     const givenDate = dayjs(dateString);
     // 0 is Sunday
     const dayNumber = parseInt(givenDate.format('d'), 10);
@@ -93,7 +98,8 @@ export class DatesCalculator {
       success: true,
       message: `There are ${results.length} working days in the working week commencing `
        + `Monday ${nextMonday.format(this.dateFormat)}. ${bankHolidaysRes.message}`,
-      data: results
+      data: results,
+      statusCode: StatusCodes.OK,
     };
   }
 
@@ -101,8 +107,12 @@ export class DatesCalculator {
    * helper fn for returning an error
    * @param message description of what went wrong
    */
-  private readonly failReturn = (message: string): IFailResponse =>
-    ({ success: false, message })
+  private readonly failReturn = (message: string, invalidInput = false): IFailResponse =>
+    ({
+        success: false,
+        message,
+        statusCode: invalidInput ? StatusCodes.BAD_REQUEST : StatusCodes.INTERNAL_SERVER_ERROR
+    })
 
   /**
    * Check if a date is in a known list of holidays
@@ -151,7 +161,8 @@ export class DatesCalculator {
       success: true,
       message: `There ${plural ? 'are' : 'is'} ${holidays.length > 0 ? 'also ' : ''}`
         + `${holidays.length} holiday${plural ? 's' : ''} in ${region}${dates}.`,
-      data: holidays
+      data: holidays,
+      statusCode: StatusCodes.OK,
     }
   }
 }

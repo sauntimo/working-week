@@ -15,12 +15,11 @@ const datesCalculator = new DatesCalculator();
  * @param {IRegion} region a region of the UK to check for holidays 
  */
 router.get('/:date', async (req: Request, res: Response) => {
-
     const response = await datesCalculator.calculateDates(
         req.params.date,
         req.query.region as IRegion
     );
-    res.status(StatusCodes.OK).json(response);
+    res.status(response.statusCode).json(response);
 });
 
 export default router;
