@@ -2,38 +2,23 @@ import dayjs from 'dayjs';
 import fetch from 'node-fetch';
 import { StatusCodes } from 'http-status-codes';
 
-// import {
-//   IDayObject,
-//   Weekday,
-//   IApiResponse,
-//   IDivision,
-//   IHolidayResponse,
-//   IHoliday,
-//   IHolidayEvent
-// } from './src/common/types';
+// TODO: put these types & interfaces in a separate file
 
-
-interface IDayObject {
-  date: string;
-  isHoliday: boolean;
-  weekday: Weekday;
-}
-
-type Weekday = 'Sunday'
-  | 'Monday'
-  | 'Tuesday'
-  | 'Wednesday'
-  | 'Thursday'
-  | 'Friday'
-  | 'Saturday'
-
-// type IWeekdays = Weekday[];
-
-interface IApiResponse<T> {
+interface IApiResponseBase {
   success: boolean;
   message: string;
+}
+
+interface ISuccessResponse<T> extends IApiResponseBase {
+  success: true;
   data: T
 }
+
+interface IFailResponse extends IApiResponseBase {
+  success: false;
+}
+
+type IApiResponse<T> = ISuccessResponse<T> | IFailResponse
 
 type IDivision = 'england-and-wales' | 'scotland' | 'northern-ireland'
 
@@ -56,33 +41,23 @@ interface IHolidayEvent {
 export default class DatesCalculator {
 
   private readonly bankHolidayApiUrl = 'https://www.gov.uk/bank-holidays.json';
-
   private readonly dateFormat = 'YYYY-MM-DD';
-
-  private readonly weekdays: Weekday[] = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday'
-  ];
 
   /**
    * Takes a date and returns an array of dates for the following working week
+   * * Assumes the next working week commences on the following Monday
+   * * So given a Monday, will return the week commencing 7 days later
    * @param {Date} date a date for which to get the following working week
    */
   public calculateDates = async (
     date: string,
     region: IDivision = 'england-and-wales',
-  ): Promise<IApiResponse<IDayObject[]>> => {
+  ): Promise<IApiResponse<Date[]>> => {
 
     if (isNaN(Date.parse(date))) {
       return {
         success: false,
-        message: `Invalid date. Please supply dates as YYYY-MM-DD`,
-        data: [],
+        message: `Invalid date. Please supply a date string in a valid format such as YYYY-MM-DD`,
       }
     }
 
@@ -94,37 +69,41 @@ export default class DatesCalculator {
       : 1;
     const nextMonday = givenDate.add(daysTilNextMonday, 'day');
     const bankHolidaysRes = await this.getBankHolidays(nextMonday.format(this.dateFormat), region);
-    const holidays = bankHolidaysRes.data;
+    // If unable to retrieve bank holidays, doesn't need to return failed
+    // but should include warning in message  
+    const holidays = bankHolidaysRes.success ? bankHolidaysRes.data : []; 
 
-    const results: IDayObject[] = [...Array(5).keys()].map(index => {
-      const weekday = nextMonday.add(index, 'day');
-      return {
-        date: weekday.hour(8).minute(30).format(),
-        isHoliday: this.isHoliday(weekday, holidays),
-        weekday: this.getWeekday(weekday),
-      }
-    }).filter(day => !day.isHoliday);
+    const results: Date[] = [...Array(5).keys()]
+      .map(index => nextMonday.add(index, 'day'))
+      .filter(day => !this.isHoliday(day, holidays))
+      .map(day => new Date(day.hour(8).minute(30).format()));
 
-    return Promise.resolve({
+    return {
       success: true,
-      message: `Found ${results.length} working days in the working week commencing 
-        ${nextMonday.format(this.dateFormat)}. ${bankHolidaysRes.message}`,
+      message: `There are ${results.length} working days in the working week commencing
+        Monday ${nextMonday.format(this.dateFormat)}. ${bankHolidaysRes.message}`,
       data: results
-    });
+    };
   }
 
-private readonly getWeekday = (day: dayjs.Dayjs): Weekday => {
-  const weekdayIndex = parseInt(day.format('d'),10); 
-  return this.weekdays[weekdayIndex];
-}
-
+/**
+ * Check if a date is in a known list of holidays
+ * @param date date to check
+ * @param holidays holidays retrieved from external source
+ */
   private readonly isHoliday = (
     date: dayjs.Dayjs,
     holidays: IHolidayEvent[]
   ): boolean => {
-    return holidays.some(day =>  day.date === date.format(this.dateFormat));
+    return holidays.some(day => day.date === date.format(this.dateFormat));
   }
 
+  /**
+   * Check a week for bank holidays
+   * uses gov.uk data
+   * @param date start of week to check for holidays
+   * @param division region of the UK to check for holidays
+   */
   private readonly getBankHolidays = async (
     date: string,
     division: IDivision,
@@ -132,31 +111,32 @@ private readonly getWeekday = (day: dayjs.Dayjs): Weekday => {
     const givenDate = dayjs(date);
 
     const bankHolidaysRes = await fetch(this.bankHolidayApiUrl, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
 
     if (bankHolidaysRes.status !== StatusCodes.OK) {
       return {
         success: false,
-        message: `Unable to retrieve bank holidays from external source`,
-        data: []
+        message: `Unable to retrieve bank holidays from external source.`,
       }
     }
 
     const bankHolidays: IHolidayResponse = await bankHolidaysRes.json();
 
     const holidays = bankHolidays[division].events
-      .filter(event => dayjs(event.date).isAfter(givenDate))
+      .filter(event => dayjs(event.date).isAfter(givenDate.subtract(1, 'day')))
       .filter(event => dayjs(event.date).isBefore(givenDate.add(5, 'day')));
+
+    const plural = holidays.length !== 1;
+    const dates = holidays.length > 0 
+      ? `: ` + holidays.map(day => `${day.date} (${day.title})`).join(', ')
+      : '';
 
     return {
       success: true,
-      message: `Found ${holidays.length} holidays in the working week commencing ${date}`,
+      message: `There ${plural ? 'are' : 'is'} ${holidays.length > 0 ? 'also' : ''}
+        ${holidays.length} holiday${plural ? 's' : ''}${dates}.`,
       data: holidays
     }
   }
-
 }
-
