@@ -76,8 +76,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "spec/**/*.ts"
-  ],
+    "tests/**/*.ts"
+, "tests/WorkingWeek.spec.ts"  ],
   "exclude": [
     "src/public/"
   ]

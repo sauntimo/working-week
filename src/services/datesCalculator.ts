@@ -7,39 +7,39 @@ import { StatusCodes } from 'http-status-codes';
 
 // TODO: put these types & interfaces in a separate file
 
-interface IApiResponseBase {
+export interface IApiResponseBase {
   success: boolean;
   message: string;
   statusCode: StatusCodes;
 }
 
-interface ISuccessResponse<T> extends IApiResponseBase {
+export interface ISuccessResponse<T> extends IApiResponseBase {
   success: true;
   data: T;
   statusCode: StatusCodes.OK;
 }
 
-interface IFailResponse extends IApiResponseBase {
+export interface IFailResponse extends IApiResponseBase {
   success: false;
   statusCode: StatusCodes.BAD_REQUEST | StatusCodes.INTERNAL_SERVER_ERROR;
 }
 
-type IApiResponse<T> = ISuccessResponse<T> | IFailResponse
+export type IApiResponse<T> = ISuccessResponse<T> | IFailResponse
 
 const regions = ['england-and-wales', 'scotland', 'northern-ireland'] as const;
 export type IRegion = typeof regions[number];
 const isRegion = (x: string): x is IRegion => regions.includes(x as IRegion);
 
-type IHolidayResponse = {
+export type IHolidayResponse = {
   [key in IRegion]: IHoliday;
 }
 
-interface IHoliday {
+export interface IHoliday {
   division: IRegion;
   events: IHolidayEvent[];
 }
 
-interface IHolidayEvent {
+export interface IHolidayEvent {
   title: string;
   date: string;
   notes: string;

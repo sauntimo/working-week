@@ -8,23 +8,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const http_status_codes_1 = require("http-status-codes");
-const datesCalculator_1 = __importDefault(require("../services/datesCalculator"));
+const datesCalculator_1 = require("../services/datesCalculator");
 // Init router and path
 const router = express_1.Router();
-const datesCalculator = new datesCalculator_1.default();
+const datesCalculator = new datesCalculator_1.DatesCalculator();
 /**
  * Get dates of the next working week for a given date
- * "GET /api/working-week/:date"
+ * "GET /api/working-week/:date?region=:region"
  * @param {string} date a string that can be converted in to a date object
+ * @param {IRegion} region a region of the UK to check for holidays
  */
 router.get('/:date', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const response = yield datesCalculator.calculateDates(req.params.date);
-    res.status(http_status_codes_1.StatusCodes.OK).json(response);
+    const response = yield datesCalculator.calculateDates(req.params.date, req.query.region);
+    res.status(response.statusCode).json(response);
 }));
 exports.default = router;
