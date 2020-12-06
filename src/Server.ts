@@ -8,7 +8,6 @@ import { StatusCodes } from 'http-status-codes';
 import 'express-async-errors';
 
 import BaseRouter from './routes';
-import logger from '@shared/Logger';
 
 
 // Init express
@@ -37,7 +36,6 @@ app.use('/working-week', BaseRouter);
 
 // Print API errors
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    // logger.error(err.message, err);
     return res.status(StatusCodes.BAD_REQUEST).json({
         error: err.message,
     });

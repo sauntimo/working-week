@@ -1,38 +1,41 @@
-export interface IDayObject {
-    theDate: Date;
-    isHoliday: boolean;
-    weekday: Weekday;
-}
-
-export type Weekday = 'Monday'
-    | 'Tuesday'
-    | 'Wednesday'
-    | 'Thursday'
-    | 'Friday'
-    | 'Saturday'
-    | 'Sunday'
-
-
-export interface IApiResponse<T> {
+import { StatusCodes } from 'http-status-codes';
+export interface IApiResponseBase {
     success: boolean;
     message: string;
-    data: T
-}
+    statusCode: StatusCodes;
+  }
 
-export type IDivision = 'england-and-wales' | 'scotland' | 'northern-ireland'
+  export interface ISuccessResponse<T> extends IApiResponseBase {
+    success: true;
+    data: T;
+    statusCode: StatusCodes.OK;
+  }
 
-export interface IHolidayResponse {
-    [key: string]: IHoliday;
-}
+  export interface IFailResponse extends IApiResponseBase {
+    success: false;
+    statusCode: StatusCodes.BAD_REQUEST | StatusCodes.INTERNAL_SERVER_ERROR;
+  }
 
-export interface IHoliday {
-    division: IDivision;
+  export type IApiResponse<T> = ISuccessResponse<T> | IFailResponse
+
+  const regions = ['england-and-wales', 'scotland', 'northern-ireland'] as const;
+
+  export type IRegion = typeof regions[number];
+
+  export const isRegion = (x: string): x is IRegion => regions.includes(x as IRegion);
+
+  export type IHolidayResponse = {
+    [key in IRegion]: IHoliday;
+  }
+
+  export interface IHoliday {
+    division: IRegion;
     events: IHolidayEvent[];
-}
+  }
 
-export interface IHolidayEvent {
+  export interface IHolidayEvent {
     title: string;
     date: string;
     notes: string;
     bunting: boolean;
-}
+  }
