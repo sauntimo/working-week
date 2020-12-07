@@ -32,14 +32,15 @@
           >
         </div>
         <div class="col-md-4 pt-2 pt-md-0">
-          <input
-            type="text"
-            class="form-control"
-            id="regionInput"
-            placeholder="england-and-wales"
-            value="england-and-wales"
-          >
+          <div class="form-group">
+            <select class="form-control" id="regionInput">
+              <option value="england-and-wales">England and Wales</option>
+              <option value="scotland">Scotland</option>
+              <option value="northern-ireland">Norther Ireland</option>
+            </select>
+          </div>
         </div>
+
         <div class="col-md-4 pt-2 pt-md-0">
           <button id="makeRequest" class="btn btn-primary btn-block">Get Working Days</button>
         </div>
