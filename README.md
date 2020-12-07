@@ -59,5 +59,4 @@ $ curl -s 'https://working-week.herokuapp.com/working-week/2020-12-18?region=eng
 $ npm run test
 ```
 
-![image](https://user-images.githubusercontent.com/2720466/101330382-6fe68800-386a-11eb-9edc-34110fdcfaad.png)
-
+![image](https://user-images.githubusercontent.com/2720466/101330841-03b85400-386b-11eb-9898-7f54030f001d.png)
