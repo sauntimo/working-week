@@ -103,7 +103,7 @@ describe('calculateDates', () => {
             ${'2020-03-29'} | ${'scotland'}          | ${5}
             ${'2020-03-29'} | ${'northern-ireland'}  | ${5}
         `(
-            'should return correct number of days for $date, $region',
+            'should return $numWorkDays work days for $date in $region',
             async ({date, region, numWorkDays}) => {
                 try {
                     received = await datesCalculator.calculateDates(date, region); 
