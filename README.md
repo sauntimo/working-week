@@ -16,13 +16,13 @@ Returns an an object containing an array of dates for the working days in the we
 
 - clone the repo
 
-```
+```shell
 $ git clone git@github.com:sauntimo/working-week.git working-week
 ```
 
 - initialise
 
-```
+```shell
 $ cd working-week && npm i && npm run start:dev
 ```
 
@@ -31,7 +31,7 @@ $ cd working-week && npm i && npm run start:dev
 ### Local Usage
 
 - make a request to the API - json pretty printing with python assumes you have python installed.
-```
+```shell
 $ curl -s 'localhost:3000/working-week/2020-12-18?region=england-and-wales'| python -m json.tool
 ```
 
@@ -44,10 +44,20 @@ $ curl -s 'localhost:3000/working-week/2020-12-18?region=england-and-wales'| pyt
 ### Hosted Usage
 
 - the app is deployed on heroku so you can call the API there
-```
+```shell
 $ curl -s 'https://working-week.herokuapp.com/working-week/2020-12-18?region=england-and-wales' | python -m json.tool
 ```
 
 ![image](https://user-images.githubusercontent.com/2720466/101291083-2ceecb00-37fe-11eb-86a2-c25edf0a08a3.png)
 
 - a similar frontend is also available at [working-week.herokuapp.com](https://working-week.herokuapp.com).
+
+### Tests
+
+- A suite of unit tests is available for the `calculateDates` function. In the future it would be good to expand on this with end-to-end tests.
+```shell
+$ npm run test
+```
+
+![image](https://user-images.githubusercontent.com/2720466/101330382-6fe68800-386a-11eb-9edc-34110fdcfaad.png)
+
